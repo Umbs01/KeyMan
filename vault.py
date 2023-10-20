@@ -152,7 +152,9 @@ class Vault(object):
             height=633.0
         )
         # vault items
-        print(account["idToken"])
+        print(account)
+        account = auth.refresh(account['refreshToken'])
+        print(account)
         items = db.child("users").child("vault").get(account['idToken'])
         self.listItems = items.key()
         print(self.listItems)
