@@ -136,7 +136,7 @@ class Vault(object):
             image=self.image_image_2
         )
 
-        # soon to be a listbox
+        # listbox
         self.list = Listbox(
             self.canvas,
             bg="#FFFFFF",
@@ -152,12 +152,12 @@ class Vault(object):
             height=633.0
         )
         # vault items
-        print(account)
-        account = auth.refresh(account['refreshToken'])
-        print(account)
-        items = db.child("users").child("vault").get(account['idToken'])
-        self.listItems = items.key()
+        userId = account.get("localId")
+        items = db.child("users").child(userId).child("vault").get(account['idToken'])
+        self.listItems = items.val()
+        self.filtered_data = self.listItems
         print(self.listItems)
+        self.update()
 
         self.window.resizable(False, False)
 
@@ -180,14 +180,14 @@ class Vault(object):
                 if value.lower() in item.lower():
                     data.append(item)
         
-        self.update(data)
+        self.filtered_data = data
 
-    def update(self,data):
+    def update(self):
         # clear all the value
         self.list.delete(0,'end')
         # insert new query
-        for item in data:
+        for item in self.filtered_data:
             self.list.insert('end',item)
 
     def fetch(self): 
-        self.update(self.listItems)
+        self.update()
