@@ -1,6 +1,7 @@
-from tkinter import Tk, Canvas, Entry, Button, PhotoImage, Listbox
+from tkinter import Tk, Canvas, Entry, Button, PhotoImage, Listbox, Toplevel
 from pathlib import Path
 from config import firebase,db,auth
+from newpage import New
 
 class Vault(object):
     def __init__(self, window, account, login_callback):
@@ -101,7 +102,7 @@ class Vault(object):
             image=self.button_image_3,
             borderwidth=0,
             highlightthickness=0,
-            command=lambda: print("button_3 clicked"),
+            command=self.new,
             relief="flat"
         )
         self.button_3.place(
@@ -191,3 +192,10 @@ class Vault(object):
 
     def fetch(self): 
         self.update()
+
+    def new(self):
+        new_popup = Toplevel(self.window)
+        new_popup.title("New Item")
+
+        # create a new instance of the New() class
+        new_app = New(new_popup)
