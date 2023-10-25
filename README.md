@@ -2,6 +2,7 @@
 # KeyMan - A simple password manager
 
 ![logo](assets/frame0/image_2.png)
+
 This project is submitted for Computer Programming
 
 
