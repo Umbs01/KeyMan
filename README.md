@@ -14,7 +14,6 @@ This project is submitted for Computer Programming
 ## Features
 
 - Authentications 
-- Fullscreen mode
 
 
 ## Roadmap

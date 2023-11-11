@@ -1,15 +1,19 @@
-from tkinter import Tk, Canvas, Entry, Button, PhotoImage, Listbox, Toplevel
+from tkinter import Tk, Canvas, Entry, Button, PhotoImage, Listbox, Toplevel, Label, messagebox
 from pathlib import Path
 from config import firebase,db,auth
-from newpage import New
+import tkinter as tk
+import time 
+import threading
 
 class Vault(object):
     def __init__(self, window, account, login_callback):
         self.window = window
         self.window.geometry("664x832")
         self.window.configure(bg="#FFFFFF")
+        self.account = account
         # method to callback to login page
         self.login_page = login_callback
+        
 
         self.canvas = Canvas(
             self.window,
@@ -31,7 +35,7 @@ class Vault(object):
         )
 
         # Search bar 
-        self.image_image_1 = PhotoImage(file=self.relative_to_assets("image_1.png"))
+        self.image_image_1 = PhotoImage(file=self.relative_to_assets("image_1.png",1))
         self.image_1 = self.canvas.create_image(
             331.0,
             40.0,
@@ -39,7 +43,7 @@ class Vault(object):
         )
 
         # search field
-        self.entry_image_1 = PhotoImage(file=self.relative_to_assets("entry_1.png"))
+        self.entry_image_1 = PhotoImage(file=self.relative_to_assets("entry_1.png",1))
         self.entry_bg_1 = self.canvas.create_image(
             296.0,
             106.5,
@@ -62,7 +66,7 @@ class Vault(object):
         self.searchEntry.bind('<KeyRelease>',self.scan)
 
         # search button
-        self.button_image_1 = PhotoImage(file=self.relative_to_assets("button_1.png"))
+        self.button_image_1 = PhotoImage(file=self.relative_to_assets("button_1.png",1))
         self.searchBTN = Button(
             self.canvas,
             image=self.button_image_1,
@@ -79,13 +83,13 @@ class Vault(object):
         )
 
         # Edit button
-        self.button_image_2 = PhotoImage(file=self.relative_to_assets("button_2.png"))
+        self.button_image_2 = PhotoImage(file=self.relative_to_assets("button_2.png",1))
         self.button_2 = Button(
             self.canvas,
             image=self.button_image_2,
             borderwidth=0,
             highlightthickness=0,
-            command=lambda: print("button_2 clicked"),
+            command=self.to_edit,
             relief="flat"
         )
         self.button_2.place(
@@ -96,13 +100,13 @@ class Vault(object):
         )
 
         # new button
-        self.button_image_3 = PhotoImage(file=self.relative_to_assets("button_3.png"))
+        self.button_image_3 = PhotoImage(file=self.relative_to_assets("button_3.png",1))
         self.button_3 = Button(
             self.canvas,
             image=self.button_image_3,
             borderwidth=0,
             highlightthickness=0,
-            command=self.new,
+            command=self.to_new,
             relief="flat"
         )
         self.button_3.place(
@@ -113,7 +117,7 @@ class Vault(object):
         )
 
         # logout button
-        self.button_image_4 = PhotoImage(file=self.relative_to_assets("button_4.png"))
+        self.button_image_4 = PhotoImage(file=self.relative_to_assets("button_4.png",1))
         self.button_4 = Button(
             self.canvas,
             image=self.button_image_4,
@@ -130,7 +134,7 @@ class Vault(object):
         )
 
         # magnifying image
-        self.image_image_2 = PhotoImage(file=self.relative_to_assets("image_2.png"))
+        self.image_image_2 = PhotoImage(file=self.relative_to_assets("image_2.png",1))
         self.image_2 = self.canvas.create_image(
             29.0,
             106.0,
@@ -145,6 +149,7 @@ class Vault(object):
             font=("Arial", 30),
             highlightcolor="#2E3571",
             yscrollcommand= True,
+            selectmode=tk.SINGLE,
         )
         self.list.place(
             x=0.0,
@@ -152,23 +157,32 @@ class Vault(object):
             width=664.0,
             height=633.0
         )
-        # vault items
-        userId = account.get("localId")
-        items = db.child("users").child(userId).child("vault").get(account['idToken'])
-        self.listItems = items.val()
-        self.filtered_data = self.listItems
-        print(self.listItems)
-        self.update()
+        # refresh vault items every 5 seconds while running in the background
+        self.snapshot()
+        bg_thread = threading.Thread(target=self.refresh)
+        bg_thread.start()
 
         self.window.resizable(False, False)
 
-    def relative_to_assets(self, path: str) -> Path:
-        ASSETS_PATH = Path("assets/frame1")
+    def relative_to_assets(self, path: str, frame) -> Path:
+        ASSETS_PATH = Path(f"assets/frame{frame}")
         return ASSETS_PATH / Path(path)
     
     def logout(self):
         self.window.destroy()
         self.login_page()
+
+    def snapshot(self):
+        userId = self.account.get("localId")
+        items = db.child("users").child(userId).child("vault").get(self.account['idToken'])
+        self.listItems = items.val()
+        self.filtered_data = self.listItems
+        self.update()
+
+    def refresh(self):
+        while True:
+            time.sleep(5) 
+            self.snapshot()
 
     def scan(self,event):
         value = event.widget.get()
@@ -193,9 +207,610 @@ class Vault(object):
     def fetch(self): 
         self.update()
 
-    def new(self):
+    def to_new(self):
         new_popup = Toplevel(self.window)
         new_popup.title("New Item")
 
         # create a new instance of the New() class
-        new_app = New(new_popup)
+        new = New(new_popup, self.account)
+
+    def to_edit(self):
+        selected = self.list.curselection()
+
+        try:
+            self.list.get(selected)
+        except:
+            messagebox.showerror("error","Select an item in the list.")
+        else:
+            edit_popup = Toplevel(self.window)
+            edit_popup.title("Edit Credentials")
+            # create a new instance of the Edit() class
+            edit = Edit(edit_popup, self.account, self.list.get(selected))
+
+#--------------------------------------------------------------- New Page -----------------------------------------------------------------#
+
+class New(Vault):
+    def __init__(self, window, account):
+        super().__init__(window, account, login_callback=0)
+        self.window = window
+        self.window.geometry("664x492")
+        self.window.configure(bg="#FFFFFF")
+        self.showstatus = tk.StringVar()
+        self.showstatus.set("*")
+
+        self.canvas = Canvas(
+            self.window,
+            bg="#FFFFFF",
+            height=492,
+            width=664,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
+        )
+        self.canvas.place(x=0, y=0)
+        self.canvas.create_rectangle(
+            0.0,
+            0.0,
+            664.0,
+            81.0,
+            fill="#2E3571",
+            outline=""
+        )
+
+        self.image_image_1 = PhotoImage(file=self.relative_to_assets("image_1.png",2))
+        self.image_1 = self.canvas.create_image(
+            331.0,
+            40.0,
+            image=self.image_image_1
+        )
+
+        self.siteLabel = Label(
+            self.canvas,
+            bd=0, 
+            bg="#FFFFFF",
+            anchor="nw",
+            text="Website",
+            font=("KufamRoman Regular", -30)
+        )
+        self.siteLabel.place(
+            x= 77.0,
+            y= 102.0,
+        )
+
+        self.accLabel = Label(
+            self.canvas,
+            bd=0,
+            bg="#FFFFFF",
+            anchor="nw",
+            text="Username",
+            font=("KufamRoman Regular", -30)
+        )
+        self.accLabel.place(
+            x=80.0,
+            y=204.0,
+        )
+
+        self.passwordLabel = Label(
+            self.canvas,
+            bd=0,
+            bg="#FFFFFF",
+            anchor="nw",
+            text="Password",
+            font=("KufamRoman Regular", -30)
+        )
+        self.passwordLabel.place(
+            x=80.0,
+            y=311.0
+        )
+
+        self.canvas.create_rectangle(
+            34.0,
+            290.0,
+            525.0,
+            291.0,
+            fill="#000000",
+            outline=""
+        )
+
+        self.canvas.create_rectangle(
+            34.0,
+            402.0,
+            524.0,
+            403.0,
+            fill="#000000",
+            outline=""
+        )
+
+        self.canvas.create_rectangle(
+            36.0, 
+            188.0, 
+            448.0, 
+            189.0,
+            fill="#000000",
+            outline=""
+        )
+
+        # show/hide button
+        self.button_image_1 = PhotoImage(file=self.relative_to_assets("button_1.png",2))
+        self.showBtn = Button(
+            self.canvas,
+            image=self.button_image_1,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.toggleShow,
+            relief="flat"
+        )
+        self.showBtn.place(
+            x=537.0,
+            y=371.0,
+            width=48.0,
+            height=48.0
+        )
+
+        self.button_image_2 = PhotoImage(file=self.relative_to_assets("button_2.png",2))
+        self.cpBtn = Button(
+            self.canvas,
+            image=self.button_image_2,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.copyAcc,
+            relief="flat"
+        )
+        self.cpBtn.place(
+            x=546.0,
+            y=254.0,
+            width=39.0,
+            height=47.0
+        )
+
+        self.button_image_3 = PhotoImage(file=self.relative_to_assets("button_3.png",2))
+        self.cpPassBtn = Button(
+            self.canvas,
+            image=self.button_image_3,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.copyPass,
+            relief="flat"
+        )
+        self.cpPassBtn.place(
+            x=599.0,
+            y=371.0,
+            width=39.0,
+            height=47.0
+        )
+
+        # create button
+        self.button_image_4 = PhotoImage(file=self.relative_to_assets("button_4.png",2))
+        self.createBtn = Button(
+            self.canvas,
+            image=self.button_image_4,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.create,
+            relief="flat"
+        )
+        self.createBtn.place(
+            x=167.0,
+            y=426.0,
+            width=281.0,
+            height=44.0
+        )
+
+        self.image_image_2 = PhotoImage(file=self.relative_to_assets("web.png",2))
+        self.image_2 = self.canvas.create_image(
+            55.0,
+            124.0,
+            image=self.image_image_2
+        )
+
+        self.image_image_3 = PhotoImage(file=self.relative_to_assets("account.png",2))
+        self.image_3 = self.canvas.create_image(
+            58.0,
+            226.0,
+            image=self.image_image_3
+        )
+
+        self.image_image_4 = PhotoImage(file=self.relative_to_assets("key.png",2))
+        self.image_4 = self.canvas.create_image(
+            58.0,
+            334.0,
+            image=self.image_image_4
+        )
+
+        # site entry
+        self.entry_image_3 = PhotoImage(file=self.relative_to_assets("entry.png",2))
+        self.entry_bg_3 = self.canvas.create_image(
+            243.4,
+            164.5,
+            image=self.entry_image_3
+        )
+        self.siteEntry = Entry(
+            self.canvas,
+            bd=0,
+            bg="#FFFFFF",
+            fg="#000716",
+            highlightthickness=0,
+            font=('Helvetica 20'),
+        )
+        self.siteEntry.place(
+            x=39,
+            y=152,
+            width=408,
+            height=32,
+        )
+
+        # account entry
+        self.entry_image_2 = PhotoImage(file=self.relative_to_assets("entry.png",2))
+        self.entry_bg_2 = self.canvas.create_image(
+            281,
+            266.4,
+            image=self.entry_image_2
+        )
+        self.accEntry = Entry(
+            self.canvas,
+            bd=0,
+            bg="#FFFFFF",
+            fg="#000716",
+            highlightthickness=0,
+            font=('Helvetica 20'),
+        )
+        self.accEntry.place(
+            x=37.0,
+            y=254,
+            width=488,
+            height=32,
+        )
+
+        # password entry
+        self.entry_image_1 = PhotoImage(file=self.relative_to_assets("entry.png",2))
+        self.entry_bg_1 = self.canvas.create_image(
+            279,
+            378.5,
+            image=self.entry_image_1
+        )
+        self.passEntry = Entry(
+            self.canvas,
+            bd=0,
+            bg="#FFFFFF",
+            fg="#000716",
+            highlightthickness=0,
+            font=('Helvetica 20'),
+            show=self.showstatus.get(),
+        )
+        self.passEntry.place(
+            x=35.0,
+            y=366.0,
+            width=487,
+            height=32,
+        )
+
+        self.window.resizable(False, False)
+
+    def toggleShow(self):
+        if self.showstatus.get() == "":
+            self.showstatus.set("*")
+        else:
+            self.showstatus.set("")
+        self.passEntry.config(show=self.showstatus.get())
+
+    def copyAcc(self):
+        text = self.accEntry.get()
+        self.window.clipboard_clear()
+        self.window.clipboard_append(text)
+
+    def copyPass(self):
+        text = self.passEntry.get()
+        self.window.clipboard_clear()
+        self.window.clipboard_append(text)
+        
+    def create(self):
+        items = db.child("users").child(self.account["localId"]).child("vault").get(self.account['idToken']).val()
+        data = { self.accEntry.get(): self.passEntry.get() }
+
+        if data == {'':''}:
+            messagebox.showerror("error", "Please input your credentials.")
+        elif self.siteEntry.get() in items:
+            messagebox.showerror("error","Website is already registered.") 
+        else:
+            self.items = db.child("users").child(self.account.get("localId")).child("vault").child(self.siteEntry.get()).update(data, self.account['idToken'])
+            self.snapshot()
+            self.window.destroy()
+
+
+#----------------------------------------------------------------- EDIT ---------------------------------------------------------------------#
+
+class Edit(New):
+    def __init__(self, window, account, selected):
+        super().__init__(window, account)
+        self.window = window
+        self.window.geometry("664x492")
+        self.window.configure(bg="#FFFFFF")
+        self.selected = selected
+
+        self.canvas = Canvas(
+            self.window,
+            bg="#FFFFFF",
+            height=492,
+            width=664,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
+        )
+        self.canvas.place(x=0, y=0)
+        self.canvas.create_rectangle(
+            0.0,
+            0.0,
+            664.0,
+            81.0,
+            fill="#2E3571",
+            outline=""
+        )
+
+        self.image_image_1 = PhotoImage(file=self.relative_to_assets("image_1.png",2))
+        self.image_1 = self.canvas.create_image(
+            331.0,
+            40.0,
+            image=self.image_image_1
+        )
+
+        self.siteLabel = Label(
+            self.canvas,
+            bd=0, 
+            bg="#FFFFFF",
+            anchor="nw",
+            text="Website",
+            font=("KufamRoman Regular", -30)
+        )
+        self.siteLabel.place(
+            x= 77.0,
+            y= 102.0,
+        )
+
+        self.accLabel = Label(
+            self.canvas,
+            bd=0,
+            bg="#FFFFFF",
+            anchor="nw",
+            text="Username",
+            font=("KufamRoman Regular", -30)
+        )
+        self.accLabel.place(
+            x=80.0,
+            y=204.0,
+        )
+
+        self.passwordLabel = Label(
+            self.canvas,
+            bd=0,
+            bg="#FFFFFF",
+            anchor="nw",
+            text="Password",
+            font=("KufamRoman Regular", -30)
+        )
+        self.passwordLabel.place(
+            x=80.0,
+            y=311.0
+        )
+
+        self.canvas.create_rectangle(
+            34.0,
+            290.0,
+            525.0,
+            291.0,
+            fill="#000000",
+            outline=""
+        )
+
+        self.canvas.create_rectangle(
+            34.0,
+            402.0,
+            524.0,
+            403.0,
+            fill="#000000",
+            outline=""
+        )
+
+        self.canvas.create_rectangle(
+            36.0, 
+            188.0, 
+            448.0, 
+            189.0,
+            fill="#000000",
+            outline=""
+        )
+
+        # show/hide button
+        self.button_image_1 = PhotoImage(file=self.relative_to_assets("button_1.png",2))
+        self.showBtn = Button(
+            self.canvas,
+            image=self.button_image_1,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.toggleShow,
+            relief="flat"
+        )
+        self.showBtn.place(
+            x=537.0,
+            y=371.0,
+            width=48.0,
+            height=48.0
+        )
+
+        self.button_image_2 = PhotoImage(file=self.relative_to_assets("button_2.png",2))
+        self.cpBtn = Button(
+            self.canvas,
+            image=self.button_image_2,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.copyAcc,
+            relief="flat"
+        )
+        self.cpBtn.place(
+            x=546.0,
+            y=254.0,
+            width=39.0,
+            height=47.0
+        )
+
+        self.button_image_3 = PhotoImage(file=self.relative_to_assets("button_3.png",2))
+        self.cpPassBtn = Button(
+            self.canvas,
+            image=self.button_image_3,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.copyPass,
+            relief="flat"
+        )
+        self.cpPassBtn.place(
+            x=599.0,
+            y=371.0,
+            width=39.0,
+            height=47.0
+        )
+
+        # save button
+        self.saveBtn_img = PhotoImage(file=self.relative_to_assets("saveBtn.png",2))
+        self.saveBtn = Button(
+            self.canvas,
+            image=self.saveBtn_img,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.save,
+            relief="flat"
+        )
+        self.saveBtn.place(
+            x=96.0,
+            y=426.0,
+            width=166.0,
+            height=45
+        )
+
+        # delete button
+        self.delBtn_img = PhotoImage(file=self.relative_to_assets("delBtn.png",2))
+        self.delBtn = Button(
+            self.canvas,
+            image=self.delBtn_img,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.delete,
+            relief="flat"
+        )
+        self.delBtn.place(
+            x=366.0,
+            y=426.0,
+            width=164.0,
+            height=45
+        )
+
+        self.image_image_2 = PhotoImage(file=self.relative_to_assets("web.png",2))
+        self.image_2 = self.canvas.create_image(
+            55.0,
+            124.0,
+            image=self.image_image_2
+        )
+
+        self.image_image_3 = PhotoImage(file=self.relative_to_assets("account.png",2))
+        self.image_3 = self.canvas.create_image(
+            58.0,
+            226.0,
+            image=self.image_image_3
+        )
+
+        self.image_image_4 = PhotoImage(file=self.relative_to_assets("key.png",2))
+        self.image_4 = self.canvas.create_image(
+            58.0,
+            334.0,
+            image=self.image_image_4
+        )
+
+        # website entry
+        self.entry_image_3 = PhotoImage(file=self.relative_to_assets("entry.png",2))
+        self.entry_bg_3 = self.canvas.create_image(
+            243.4,
+            164.5,
+            image=self.entry_image_3
+        )
+        self.siteEntry = Entry(
+            self.canvas,
+            bd=0,
+            bg="#FFFFFF",
+            fg="#000716",
+            highlightthickness=0,
+            font=('Helvetica 20'),
+        )
+        self.siteEntry.place(
+            x=39,
+            y=152,
+            width=408,
+            height=32,
+        )
+        # insert the old credentials
+        self.siteEntry.insert(0, selected)
+
+        # site entry
+        self.entry_image_2 = PhotoImage(file=self.relative_to_assets("entry.png",2))
+        self.entry_bg_2 = self.canvas.create_image(
+            281,
+            266.4,
+            image=self.entry_image_2
+        )
+        self.accEntry = Entry(
+            self.canvas,
+            bd=0,
+            bg="#FFFFFF",
+            fg="#000716",
+            highlightthickness=0,
+            font=('Helvetica 20'),
+        )
+        self.accEntry.place(
+            x=37.0,
+            y=254,
+            width=488,
+            height=32,
+        )
+        self.accEntry.insert(0, list(db.child("users").child(account["localId"]).child("vault").child(self.selected).get(self.account['idToken']).val().keys())[0])
+
+        # password entry
+        self.entry_image_1 = PhotoImage(file=self.relative_to_assets("entry.png",2))
+        self.entry_bg_1 = self.canvas.create_image(
+            279,
+            378.5,
+            image=self.entry_image_1
+        )
+        self.passEntry = Entry(
+            self.canvas,
+            bd=0,
+            bg="#FFFFFF",
+            fg="#000716",
+            highlightthickness=0,
+            font=('Helvetica 20'),
+            show=self.showstatus.get(),
+        )
+        self.passEntry.place(
+            x=35.0,
+            y=366.0,
+            width=487,
+            height=32,
+        )
+
+        self.passEntry.insert(0, list(db.child("users").child(account["localId"]).child("vault").child(self.selected).get(self.account['idToken']).val().values())[0])
+
+        self.window.resizable(False, False)
+
+    def delete(self):
+        db.child("users").child(self.account['localId']).child("vault").child(self.selected).remove(self.account['idToken'])
+        self.window.destroy()
+        messagebox.showinfo("Success",f"Successfully Deleted {self.selected}")
+
+    def save(self):
+        items = db.child("users").child(self.account["localId"]).child("vault").get(self.account['idToken']).val()
+        
+        # check if theres an existing website
+        if self.siteEntry.get() != self.selected and self.siteEntry.get() in items:
+            messagebox.showerror("Alert!","Website is already registered")
+        else:
+            path = db.child("users").child(self.account['localId']).child("vault")
+            data = { self.siteEntry.get() : { self.accEntry.get() : self.passEntry.get() } }
+            path.update(data, self.account['idToken'])
+            
+            messagebox.showinfo("Success",f"Successfully saved your new credentials.")

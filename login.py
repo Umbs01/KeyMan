@@ -100,10 +100,10 @@ class Login(object):
         )
 
         self.canvas.create_text(
-            250.0,
+            260.0,
             223.0,
             anchor="nw",
-            text="LOGIN",
+            text="Login",
             fill="#FFFFFF",
             font=("Helvetica", 54 * -1)
         )
@@ -150,16 +150,14 @@ class Login(object):
         )
 
         self.account = {}
-
+        self.window.resizable(False,False)
         self.window.mainloop()
-        self.window.resizable(False, False)
+        
 
     def relative_to_assets(self, path: str) -> Path:
         OUTPUT_PATH = Path(__file__).parent
         ASSETS_PATH = OUTPUT_PATH / Path(r"assets/frame0")
         return ASSETS_PATH / Path(path)
-
-    #will add the auth method later...
 
     def to_vault(self,account):
         vault_window = Toplevel(self.window)

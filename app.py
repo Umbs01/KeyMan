@@ -1,6 +1,6 @@
 import tkinter as tk
 from login import Login
-from signin import Signin
+from config import db
 
 class Application(object):
     def __init__(self):
@@ -17,6 +17,7 @@ class Application(object):
 
     def run(self):
         self.root.mainloop()
+        
 
 if __name__ == "__main__":
     app = Application()
