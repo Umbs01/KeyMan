@@ -170,6 +170,10 @@ class Signin(object):
         try:
             auth.create_user_with_email_and_password(account,password)
 
+        except requests.exceptions.ConnectionError as err:
+            messagebox.showerror("Connectivity Error","Please check if the device is connected to the internet.")
+            return
+
         except requests.HTTPError as err:
             errJSON = err.args[1]
             error = json.loads(errJSON)['error']['message']
@@ -184,7 +188,7 @@ class Signin(object):
                 errmsg = "Unhandled ERROR"
 
             messagebox.showerror("Pyrebase error", str(errmsg))
-            print(error)
+
             return
 
         result = auth.sign_in_with_email_and_password(account,password)

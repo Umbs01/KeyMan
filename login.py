@@ -194,6 +194,10 @@ class Login(object):
         try: 
             user = auth.sign_in_with_email_and_password(account,password)
         
+        except requests.exceptions.ConnectionError as err:
+            messagebox.showerror("Connectivity Error","Please check if the device is connected to the internet.")
+            return
+
         except requests.HTTPError as err:
             errJSON = err.args[1]
             error = json.loads(errJSON)['error']['message']
