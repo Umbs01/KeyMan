@@ -202,7 +202,7 @@ class Vault(object):
         self.list.delete(0,'end')
         # insert new query
         for item in self.filtered_data:
-            self.list.insert('end',item)
+            self.list.insert('end',item.replace('_','.'))
 
     def fetch(self): 
         self.update()
@@ -505,15 +505,15 @@ class New(Vault):
         
     def create(self):
         items = db.child("users").child(self.account["localId"]).child("vault").get(self.account['idToken']).val()
-        data = { self.accEntry.get(): self.passEntry.get() }
-
+        data = { self.accEntry.get().replace('.','_'): self.passEntry.get().replace('.','_') } # replace . as _ to avoid JSON error
         if data == {'':''}:
             messagebox.showerror("error", "Please input your credentials.")
         elif self.siteEntry.get() in items:
             messagebox.showerror("error","Website is already registered.") 
         else:
-            self.items = db.child("users").child(self.account.get("localId")).child("vault").child(self.siteEntry.get()).update(data, self.account['idToken'])
+            self.items = db.child("users").child(self.account.get("localId")).child("vault").child(self.siteEntry.get().replace('.','_')).update(data, self.account['idToken'])
             self.snapshot()
+            
             self.window.destroy()
 
 
@@ -525,7 +525,7 @@ class Edit(New):
         self.window = window
         self.window.geometry("664x492")
         self.window.configure(bg="#FFFFFF")
-        self.selected = selected
+        self.selected = selected.replace('.','_')
 
         self.canvas = Canvas(
             self.window,
@@ -745,7 +745,7 @@ class Edit(New):
             height=32,
         )
         # insert the old credentials
-        self.siteEntry.insert(0, selected)
+        self.siteEntry.insert(0, selected.replace('_','.'))
 
         # site entry
         self.entry_image_2 = PhotoImage(file=self.relative_to_assets("entry.png",2))
@@ -768,7 +768,7 @@ class Edit(New):
             width=488,
             height=32,
         )
-        self.accEntry.insert(0, list(db.child("users").child(account["localId"]).child("vault").child(self.selected).get(self.account['idToken']).val().keys())[0])
+        self.accEntry.insert(0, list(db.child("users").child(account["localId"]).child("vault").child(self.selected).get(self.account['idToken']).val().keys())[0].replace('_','.'))
 
         # password entry
         self.entry_image_1 = PhotoImage(file=self.relative_to_assets("entry.png",2))
@@ -793,7 +793,7 @@ class Edit(New):
             height=32,
         )
 
-        self.passEntry.insert(0, list(db.child("users").child(account["localId"]).child("vault").child(self.selected).get(self.account['idToken']).val().values())[0])
+        self.passEntry.insert(0, list(db.child("users").child(account["localId"]).child("vault").child(self.selected).get(self.account['idToken']).val().values())[0].replace('_','.'))
 
         self.window.resizable(False, False)
 
@@ -810,7 +810,7 @@ class Edit(New):
             messagebox.showerror("Alert!","Website is already registered")
         else:
             path = db.child("users").child(self.account['localId']).child("vault")
-            data = { self.siteEntry.get() : { self.accEntry.get() : self.passEntry.get() } }
+            data = { self.siteEntry.get().replace('.','_') : { self.accEntry.get().replace('_','.') : self.passEntry.get().replace('_','.') } }
             path.update(data, self.account['idToken'])
             
             messagebox.showinfo("Success",f"Successfully saved your new credentials.")
