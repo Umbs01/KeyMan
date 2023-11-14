@@ -55,7 +55,7 @@ class Vault(object):
             bg="#D9D9D9",
             fg="#000716",
             highlightthickness=0,
-            font=('Helvetica 20'),
+            font=('Montserrat 20'),
         )
         self.searchEntry.place(
             x=59.0,
@@ -146,7 +146,7 @@ class Vault(object):
             self.canvas,
             bg="#FFFFFF",
             fg="#000000",
-            font=("Arial", 30),
+            font=("Montserrat", 30),
             highlightcolor="#2E3571",
             yscrollcommand= True,
             selectmode=tk.SINGLE,
@@ -270,7 +270,7 @@ class New(Vault):
             bg="#FFFFFF",
             anchor="nw",
             text="Website",
-            font=("KufamRoman Regular", -30)
+            font=("Montserrat", -30)
         )
         self.siteLabel.place(
             x= 77.0,
@@ -283,7 +283,7 @@ class New(Vault):
             bg="#FFFFFF",
             anchor="nw",
             text="Username",
-            font=("KufamRoman Regular", -30)
+            font=("Montserrat", -30)
         )
         self.accLabel.place(
             x=80.0,
@@ -296,7 +296,7 @@ class New(Vault):
             bg="#FFFFFF",
             anchor="nw",
             text="Password",
-            font=("KufamRoman Regular", -30)
+            font=("Montserrat", -30)
         )
         self.passwordLabel.place(
             x=80.0,
@@ -430,7 +430,7 @@ class New(Vault):
             bg="#FFFFFF",
             fg="#000716",
             highlightthickness=0,
-            font=('Helvetica 20'),
+            font=('Montserrat 20'),
         )
         self.siteEntry.place(
             x=39,
@@ -452,7 +452,7 @@ class New(Vault):
             bg="#FFFFFF",
             fg="#000716",
             highlightthickness=0,
-            font=('Helvetica 20'),
+            font=('Montserrat 20'),
         )
         self.accEntry.place(
             x=37.0,
@@ -474,7 +474,7 @@ class New(Vault):
             bg="#FFFFFF",
             fg="#000716",
             highlightthickness=0,
-            font=('Helvetica 20'),
+            font=('Montserrat 20'),
             show=self.showstatus.get(),
         )
         self.passEntry.place(
@@ -559,7 +559,7 @@ class Edit(New):
             bg="#FFFFFF",
             anchor="nw",
             text="Website",
-            font=("KufamRoman Regular", -30)
+            font=("Montserrat", -30)
         )
         self.siteLabel.place(
             x= 77.0,
@@ -572,7 +572,7 @@ class Edit(New):
             bg="#FFFFFF",
             anchor="nw",
             text="Username",
-            font=("KufamRoman Regular", -30)
+            font=("Montserrat", -30)
         )
         self.accLabel.place(
             x=80.0,
@@ -585,7 +585,7 @@ class Edit(New):
             bg="#FFFFFF",
             anchor="nw",
             text="Password",
-            font=("KufamRoman Regular", -30)
+            font=("Montserrat", -30)
         )
         self.passwordLabel.place(
             x=80.0,
@@ -736,7 +736,7 @@ class Edit(New):
             bg="#FFFFFF",
             fg="#000716",
             highlightthickness=0,
-            font=('Helvetica 20'),
+            font=('Montserrat 20'),
         )
         self.siteEntry.place(
             x=39,
@@ -760,7 +760,7 @@ class Edit(New):
             bg="#FFFFFF",
             fg="#000716",
             highlightthickness=0,
-            font=('Helvetica 20'),
+            font=('Montserrat 20'),
         )
         self.accEntry.place(
             x=37.0,
@@ -783,7 +783,7 @@ class Edit(New):
             bg="#FFFFFF",
             fg="#000716",
             highlightthickness=0,
-            font=('Helvetica 20'),
+            font=('Montserrat 20'),
             show=self.showstatus.get(),
         )
         self.passEntry.place(

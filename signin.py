@@ -47,12 +47,12 @@ class Signin(object):
 
         # sign up header
         self.canvas.create_text(
-                245.0,
+                225.0,
                 223.0,
             anchor="nw",
             text="Sign Up",
             fill="#FFFFFF",
-            font=("Helvetica", 54 * -1)
+            font=("Montserrat", 54 * -1)
         )
         
         self.label1 = Label(
@@ -60,7 +60,7 @@ class Signin(object):
             bd=0,
             bg="#242439",
             fg="#FFFFFF",
-            font=('Helvetica 12'),
+            font=('Montserrat 12'),
             text='Email',
         )
         self.label1.place(
@@ -82,7 +82,7 @@ class Signin(object):
             bg="#36364A",
             fg="#FFFFFF",
             highlightthickness=0,
-            font=('Helvetica 20'),
+            font=('Montserrat 20'),
         )
         self.userEntry.place(
             x=135.0,
@@ -96,7 +96,7 @@ class Signin(object):
             bd=0,
             bg="#242439",
             fg="#FFFFFF",
-            font=('Helvetica 12'),
+            font=('Montserrat 12'),
             text='Password',
         )
         self.label2.place(
@@ -117,7 +117,7 @@ class Signin(object):
             bg="#36364A",
             fg="#FFFFFF",
             highlightthickness=0,
-            font=('Helvetica 20'),
+            font=('Montserrat 20'),
             show="*"
         )
         self.passEntry.place(

@@ -35,7 +35,7 @@ class Login(object):
             bd=0,
             bg="#242439",
             fg="#FFFFFF",
-            font=('Helvetica 12'),
+            font=('Montserrat 12'),
             text='Email',
         )
         self.label1.place(
@@ -55,7 +55,7 @@ class Login(object):
             bg="#36364A",
             fg="#FFFFFF",
             highlightthickness=0,
-            font=('Helvetica 20'),
+            font=('Montserrat 20'),
             
         )
         self.userEntry.place(
@@ -69,7 +69,7 @@ class Login(object):
             bd=0,
             bg="#242439",
             fg="#FFFFFF",
-            font=('Helvetica 12'),
+            font=('Montserrat 12'),
             text='Password',
         )
         self.label2.place(
@@ -89,7 +89,7 @@ class Login(object):
             bg="#36364A",
             fg="#FFFFFF",
             highlightthickness=0,
-            font=('Helvetica 20'),
+            font=('Montserrat 20'),
             show="*"
         )
         self.passEntry.place(
@@ -100,12 +100,12 @@ class Login(object):
         )
 
         self.canvas.create_text(
-            260.0,
+            255.0,
             223.0,
             anchor="nw",
             text="Login",
             fill="#FFFFFF",
-            font=("Helvetica", 54 * -1)
+            font=("Montserrat", 54 * -1)
         )
 
         self.button_image_1 = PhotoImage(file=self.relative_to_assets("button_1.png"))
