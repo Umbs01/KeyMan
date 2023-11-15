@@ -157,10 +157,11 @@ class Vault(object):
             width=664.0,
             height=633.0
         )
-        # refresh vault items every 5 seconds while running in the background
+        
         self.snapshot()
-        bg_thread = threading.Thread(target=self.refresh)
-        bg_thread.start()
+        # refresh vault items every 5 seconds while running in the background
+        # self.thread = threading.Thread(target=self.refresh)
+        # self.thread.start
 
         self.window.resizable(False, False)
 
@@ -178,11 +179,11 @@ class Vault(object):
         self.listItems = items.val()
         self.filtered_data = self.listItems
         self.update()
-
-    def refresh(self):
-        while True:
-            time.sleep(5) 
-            self.snapshot()
+            
+    # def refresh(self):
+    #     while True:
+    #         time.sleep(5) 
+    #         self.snapshot()
 
     def scan(self,event):
         value = event.widget.get()
@@ -512,9 +513,9 @@ class New(Vault):
             messagebox.showerror("error","Website is already registered.") 
         else:
             self.items = db.child("users").child(self.account.get("localId")).child("vault").child(self.siteEntry.get().replace('.','_')).update(data, self.account['idToken'])
-            self.snapshot()
             
             self.window.destroy()
+
 
 
 #----------------------------------------------------------------- EDIT ---------------------------------------------------------------------#
@@ -801,6 +802,7 @@ class Edit(New):
         db.child("users").child(self.account['localId']).child("vault").child(self.selected).remove(self.account['idToken'])
         self.window.destroy()
         messagebox.showinfo("Success",f"Successfully Deleted {self.selected}")
+        self.snapshot()
 
     def save(self):
         items = db.child("users").child(self.account["localId"]).child("vault").get(self.account['idToken']).val()
@@ -814,3 +816,5 @@ class Edit(New):
             path.update(data, self.account['idToken'])
             
             messagebox.showinfo("Success",f"Successfully saved your new credentials.")
+            self.window.destroy()
+            self.snapshot()
